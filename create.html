@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Тики Пики — Новая публикация</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css"><link rel="stylesheet" href="css/responsive.css">
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body data-page="create">
+<div class="app-shell"><aside id="sidebar" class="sidebar"></aside><main class="main-content">
+<header class="topbar"><a class="brand mobile-brand" href="index.html"><span class="brand-mark">ТП</span><span>Тики Пики</span></a><div></div><div id="topbar-user" class="topbar-user"></div></header>
+<section class="page-container narrow-container">
+  <div class="page-header"><div><p class="eyebrow">Новая история</p><h1>Создать публикацию</h1><p class="muted">Поделись кадром, мыслью или тем, что хочется сохранить.</p></div></div>
+  <form id="post-form" class="editor-card">
+    <div class="form-grid">
+      <label class="field-full">Ссылка на изображение
+        <input name="image" type="url" required placeholder="https://images.unsplash.com/...">
+        <small>Для первой версии используем URL. Архитектура готова к Firebase Storage.</small>
+      </label>
+      <label class="field-full">Текст
+        <textarea name="text" rows="6" maxlength="1000" placeholder="Что происходит сегодня?"></textarea>
+      </label>
+      <label>Теги
+        <input name="tags" type="text" placeholder="travel, summer, coffee">
+        <small>До 5 тегов через запятую.</small>
+      </label>
+      <label>Категория
+        <select name="category"><option value="life">Life</option><option value="travel">Travel</option><option value="food">Food</option><option value="design">Design</option><option value="nature">Nature</option></select>
+      </label>
+    </div>
+    <div class="editor-actions"><a class="button button-secondary" href="index.html">Отмена</a><button class="button button-primary" type="submit"><i data-lucide="send"></i> Опубликовать</button></div>
+  </form>
+</section></main></div>
+<div id="toast-root" class="toast-root"></div>
+<script type="module" src="js/app.js"></script>
+<script type="module">
+  import { requireAuth } from './js/auth.js';
+  import { createPost } from './js/posts.js';
+  import { getCurrentUserProfile } from './js/profile.js';
+  import { showToast, refreshIcons } from './js/ui.js';
+  requireAuth().then(async (user) => {
+    if (!user) return;
+    const form = document.querySelector('#post-form');
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const button = form.querySelector('button[type="submit"]');
+      button.disabled = true;
+      try {
+        const profile = await getCurrentUserProfile();
+        const data = new FormData(form);
+        const tags = String(data.get('tags') || '').split(',').map(t => t.trim().toLowerCase().replace(/^#/, '')).filter(Boolean).slice(0, 5);
+        await createPost({
+          authorId: user.uid,
+          authorName: profile.name,
+          authorAvatar: profile.avatar || '',
+          text: String(data.get('text') || '').trim(),
+          image: String(data.get('image') || '').trim(),
+          tags,
+          category: String(data.get('category'))
+        });
+        showToast('Публикация создана', 'success');
+        location.href = 'index.html';
+      } catch (error) {
+        showToast(error.message || 'Не удалось создать публикацию', 'error');
+      } finally { button.disabled = false; }
+    });
+    refreshIcons();
+  });
+</script>
+</body></html>

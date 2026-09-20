@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Тики Пики — Публикация</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css"><link rel="stylesheet" href="css/responsive.css">
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body data-page="post">
+<div class="app-shell"><aside id="sidebar" class="sidebar"></aside><main class="main-content">
+<header class="topbar"><a class="brand mobile-brand" href="index.html"><span class="brand-mark">ТП</span><span>Тики Пики</span></a><div></div><div id="topbar-user" class="topbar-user"></div></header>
+<section class="page-container">
+  <div id="post-detail" class="post-detail"></div>
+  <section class="comments-panel">
+    <div class="section-title"><h2>Комментарии</h2><span id="comment-count" class="count-badge">0</span></div>
+    <form id="comment-form" class="comment-form"><input name="text" maxlength="500" required placeholder="Напиши что-нибудь тёплое…"><button class="icon-button icon-button-primary" type="submit" aria-label="Отправить"><i data-lucide="send"></i></button></form>
+    <div id="comments-list" class="comments-list"><div class="skeleton-line"></div><div class="skeleton-line short"></div></div>
+  </section>
+</section></main></div>
+<div id="modal-root"></div><div id="toast-root" class="toast-root"></div>
+<script type="module" src="js/app.js"></script>
+<script type="module">
+import { requireAuth } from './js/auth.js';
+import { getPost, deletePost, updatePost } from './js/posts.js';
+import { renderPostDetail } from './js/ui.js';
+import { subscribeToComments, addComment, deleteComment } from './js/comments.js';
+import { getCurrentUserProfile } from './js/profile.js';
+import { showToast, refreshIcons, confirmDialog } from './js/ui.js';
+const postId = new URLSearchParams(location.search).get('id');
+requireAuth().then(async (user) => {
+  if (!user || !postId) { location.href = 'index.html'; return; }
+  const post = await getPost(postId);
+  if (!post) { document.querySelector('#post-detail').innerHTML = '<div class="empty-state"><h2>Публикация не найдена</h2><a class="button button-primary" href="index.html">На главную</a></div>'; return; }
+  renderPostDetail(post, user);
+  if (post.authorId === user.uid) {
+    const detailSide = document.querySelector('.detail-side');
+    const controls = document.createElement('div');
+    controls.className = 'editor-actions';
+    controls.innerHTML = `<button id="edit-post" class="button button-secondary"><i data-lucide="pencil"></i> Изменить</button><button id="delete-post" class="button button-secondary danger"><i data-lucide="trash-2"></i> Удалить</button>`;
+    detailSide.prepend(controls);
+    controls.querySelector('#delete-post').onclick = async () => {
+      if (await confirmDialog('Удалить публикацию?')) {
+        await deletePost(postId, user.uid);
+        showToast('Публикация удалена', 'success');
+        location.href = 'index.html';
+      }
+    };
+    controls.querySelector('#edit-post').onclick = () => {
+      const root = document.querySelector('#modal-root');
+      root.innerHTML = `<div class="modal-backdrop"><div class="modal"><h3>Редактировать публикацию</h3><form id="edit-post-form" class="form-stack">
+        <label>Изображение<input name="image" type="url" required value="${escapeHtml(post.image)}"></label>
+        <label>Текст<textarea name="text" rows="5" maxlength="1000">${escapeHtml(post.text || '')}</textarea></label>
+        <label>Теги<input name="tags" value="${escapeHtml((post.tags || []).join(', '))}"></label>
+        <div class="modal-actions"><button type="button" class="button button-secondary" data-close>Отмена</button><button class="button button-primary">Сохранить</button></div>
+      </form></div></div>`;
+      root.querySelector('[data-close]').onclick = () => root.innerHTML = '';
+      root.querySelector('form').onsubmit = async event => {
+        event.preventDefault();
+        const data = new FormData(event.currentTarget);
+        await updatePost(postId, user.uid, {
+          image: data.get('image'),
+          text: data.get('text'),
+          tags: String(data.get('tags') || '').split(',').map(x => x.trim().toLowerCase().replace(/^#/, '')).filter(Boolean)
+        });
+        root.innerHTML = '';
+        showToast('Публикация обновлена', 'success');
+        location.reload();
+      };
+      refreshIcons();
+    };
+    refreshIcons();
+  }
+  const unsubscribe = subscribeToComments(postId, (comments) => {
+    document.querySelector('#comment-count').textContent = comments.length;
+    document.querySelector('#comments-list').innerHTML = comments.map(comment => `
+      <article class="comment-item">
+        <a class="avatar avatar-sm" href="profile.html?id=${comment.authorId}">${comment.authorAvatar ? `<img src="${escapeHtml(comment.authorAvatar)}" alt="">` : escapeHtml((comment.authorName || '?').slice(0,1).toUpperCase())}</a>
+        <div class="comment-body"><div class="comment-meta"><a href="profile.html?id=${comment.authorId}">${escapeHtml(comment.authorName || 'Пользователь')}</a><time>${formatDate(comment.createdAt)}</time></div><p>${escapeHtml(comment.text)}</p></div>
+        ${(comment.authorId === user.uid) ? `<button class="icon-button danger comment-delete" data-id="${comment.id}" aria-label="Удалить"><i data-lucide="trash-2"></i></button>` : ''}
+      </article>`).join('') || '<div class="empty-inline">Пока нет комментариев. Будь первым.</div>';
+    document.querySelectorAll('.comment-delete').forEach(btn => btn.addEventListener('click', async () => {
+      if (await confirmDialog('Удалить этот комментарий?')) { await deleteComment(btn.dataset.id, user.uid); showToast('Комментарий удалён', 'success'); }
+    }));
+    refreshIcons();
+  });
+  window.addEventListener('beforeunload', unsubscribe);
+  const form = document.querySelector('#comment-form');
+  form.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const input = form.elements.text;
+    const profile = await getCurrentUserProfile();
+    await addComment({ postId, authorId: user.uid, authorName: profile.name, authorAvatar: profile.avatar || '', text: input.value.trim() });
+    input.value = '';
+  });
+  refreshIcons();
+});
+function escapeHtml(value=''){return String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));}
+function formatDate(timestamp){return timestamp?.toDate ? new Intl.DateTimeFormat('ru-RU',{day:'numeric',month:'short',year:'numeric'}).format(timestamp.toDate()) : '';}
+</script>
+</body></html>

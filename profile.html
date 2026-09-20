@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Тики Пики — Профиль</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css"><link rel="stylesheet" href="css/responsive.css">
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body data-page="profile">
+<div class="app-shell"><aside id="sidebar" class="sidebar"></aside><main class="main-content">
+<header class="topbar"><a class="brand mobile-brand" href="index.html"><span class="brand-mark">ТП</span><span>Тики Пики</span></a><div class="topbar-search"><i data-lucide="search"></i><input id="global-search" type="search" placeholder="Поиск публикаций и людей"></div><div id="topbar-user" class="topbar-user"></div></header>
+<section class="page-container">
+  <div id="profile-view" class="profile-card skeleton-card"></div>
+  <div class="profile-tabs"><button class="profile-tab is-active">Публикации</button></div>
+  <div id="profile-posts" class="profile-grid"></div>
+  <div id="profile-empty" class="empty-state hidden"><div class="empty-icon"><i data-lucide="image"></i></div><h2>Здесь пока пусто</h2><p>Публикации пользователя появятся здесь.</p></div>
+</section></main></div>
+<div id="modal-root"></div><div id="toast-root" class="toast-root"></div>
+<script type="module" src="js/app.js"></script>
+<script type="module" src="js/profile.js"></script>
+
+<script type="module">
+  import { requireAuth } from "./js/auth.js";
+  import { renderProfile } from "./js/profile.js";
+  import { showToast } from "./js/ui.js";
+
+  const user = await requireAuth();
+
+  if (user) {
+    const uid = new URLSearchParams(location.search).get("id") || user.uid;
+
+    renderProfile(uid).catch(error => {
+      showToast(error.message || "Не удалось загрузить профиль", "error");
+    });
+  }
+</script>
+
+</body></html>

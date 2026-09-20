@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Тики Пики — современная визуальная социальная сеть.">
+  <title>Тики Пики — Главная</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/responsive.css">
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body data-page="home">
+  <div id="app-shell" class="app-shell">
+    <aside id="sidebar" class="sidebar"></aside>
+    <main class="main-content">
+      <header class="topbar">
+        <a class="brand mobile-brand" href="index.html"><span class="brand-mark">ТП</span><span>Тики Пики</span></a>
+        <div class="topbar-search">
+          <i data-lucide="search"></i>
+          <input id="global-search" type="search" placeholder="Поиск публикаций и людей">
+        </div>
+        <div id="topbar-user" class="topbar-user"></div>
+      </header>
+
+      <section class="page-container">
+        <div class="feed-heading">
+          <div>
+            <p class="eyebrow">Добро пожаловать</p>
+            <h1>Твоя лента</h1>
+            <p class="muted">Фотографии, мысли и маленькие моменты, которые хочется сохранить.</p>
+          </div>
+          <a class="button button-primary" href="create.html"><i data-lucide="plus"></i> Создать</a>
+        </div>
+
+        <div id="feed-filters" class="filter-row">
+          <button class="filter-chip is-active" data-tag="">Все</button>
+          <button class="filter-chip" data-tag="life">Life</button>
+          <button class="filter-chip" data-tag="travel">Travel</button>
+          <button class="filter-chip" data-tag="food">Food</button>
+          <button class="filter-chip" data-tag="design">Design</button>
+          <button class="filter-chip" data-tag="nature">Nature</button>
+        </div>
+
+        <div id="feed" class="post-grid" aria-live="polite"></div>
+        <div id="feed-loading" class="loading-more"><span class="spinner"></span><span>Загружаем публикации…</span></div>
+        <div id="feed-empty" class="empty-state hidden">
+          <div class="empty-icon"><i data-lucide="sparkles"></i></div>
+          <h2>Пока здесь тихо</h2>
+          <p>Создай первую публикацию и задай настроение этой ленте.</p>
+          <a class="button button-primary" href="create.html">Создать публикацию</a>
+        </div>
+        <div class="load-more-wrap">
+          <button id="load-more" class="button button-secondary hidden">Показать ещё</button>
+        </div>
+      </section>
+    </main>
+  </div>
+  <div id="toast-root" class="toast-root"></div>
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>

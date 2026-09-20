@@ -1,0 +1,128 @@
+.auth-page{
+  min-height:100vh;
+  display:grid;
+  grid-template-columns:1.05fr .95fr;
+  background:var(--bg)
+}
+
+.auth-visual{
+  position:relative;
+  overflow:hidden;
+  padding:42px 7vw;
+  background:
+    radial-gradient(circle at 20% 20%,#eadff0 0,transparent 32%),
+    radial-gradient(circle at 85% 80%,#f4d9df 0,transparent 34%),
+    linear-gradient(135deg,#f8f2ee,#eee8f2)
+}
+
+.auth-brand{
+  position:relative;
+  z-index:2
+}
+
+.auth-copy{
+  position:relative;
+  z-index:2;
+  max-width:620px;
+  margin-top:20vh
+}
+
+.auth-copy h1{
+  font-size:clamp(3rem,5vw,5.7rem);
+  max-width:680px;
+  margin:20px 0
+}
+
+.auth-copy p{
+  max-width:540px;
+  font-size:1.08rem;
+  color:#68616e
+}
+
+.floating-card{
+  position:absolute;
+  z-index:2;
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding:14px 17px;
+  background:rgba(255,253,251,.72);
+  backdrop-filter:blur(18px);
+  border:1px solid rgba(255,255,255,.8);
+  border-radius:17px;
+  box-shadow:var(--shadow);
+  font-weight:800
+}
+
+.floating-card svg{
+  width:18px
+}
+
+.card-one{
+  right:14%;
+  top:20%;
+  transform:rotate(5deg)
+}
+
+.card-two{
+  left:12%;
+  bottom:17%;
+  transform:rotate(-6deg)
+}
+
+.auth-panel{
+  display:grid;
+  place-items:center;
+  padding:30px
+}
+
+.auth-card{
+  width:min(440px,100%);
+  background:rgba(255,253,251,.82);
+  border:1px solid var(--line);
+  border-radius:30px;
+  padding:30px;
+  box-shadow:var(--shadow)
+}
+
+.auth-tabs{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  background:#f1ecef;
+  padding:4px;
+  border-radius:13px;
+  margin-bottom:30px
+}
+
+.auth-tab{
+  border:0;
+  background:transparent;
+  padding:10px;
+  border-radius:10px;
+  color:var(--muted);
+  font-weight:800
+}
+
+.auth-tab.is-active{
+  background:#fff;
+  color:var(--ink);
+  box-shadow:0 4px 12px rgba(0,0,0,.06)
+}
+
+.section-title{
+  margin-bottom:20px
+}
+
+.section-title h2{
+  font-size:1.8rem
+}
+
+.section-title p{
+  color:var(--muted);
+  font-size:.9rem
+}
+
+.form-stack{
+  display:grid;
+  gap:15px
+}

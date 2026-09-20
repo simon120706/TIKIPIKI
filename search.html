@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Тики Пики — Поиск</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css"><link rel="stylesheet" href="css/responsive.css">
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body data-page="search">
+<div class="app-shell"><aside id="sidebar" class="sidebar"></aside><main class="main-content">
+<header class="topbar"><a class="brand mobile-brand" href="index.html"><span class="brand-mark">ТП</span><span>Тики Пики</span></a><div class="topbar-search"><i data-lucide="search"></i><input id="search-input" type="search" placeholder="Например: travel, кофе или Аня"></div><div id="topbar-user" class="topbar-user"></div></header>
+<section class="page-container"><div class="page-header"><div><p class="eyebrow">Исследуй</p><h1>Поиск</h1><p id="search-meta" class="muted">Начни вводить запрос.</p></div></div>
+<div id="search-results" class="post-grid"></div><div id="search-empty" class="empty-state hidden"><div class="empty-icon"><i data-lucide="search-x"></i></div><h2>Ничего не нашли</h2><p>Попробуй другой запрос или более короткое слово.</p></div></section>
+</main></div><div id="toast-root" class="toast-root"></div>
+<script type="module" src="js/app.js"></script><script type="module">
+import { requireAuth } from './js/auth.js'; import { searchPosts } from './js/search.js'; import { renderPostCard, refreshIcons } from './js/ui.js';
+requireAuth().then(async user=>{if(!user)return; const input=document.querySelector('#search-input'); const meta=document.querySelector('#search-meta'); const results=document.querySelector('#search-results'); const empty=document.querySelector('#search-empty'); let timer; const run=async()=>{const q=input.value.trim(); if(!q){results.innerHTML='';empty.classList.add('hidden');meta.textContent='Начни вводить запрос.';return;} meta.textContent='Ищем…'; try{const posts=await searchPosts(q); results.innerHTML=posts.map(p=>renderPostCard(p,user,{compact:false})).join(''); empty.classList.toggle('hidden',posts.length>0); meta.textContent=`Найдено: ${posts.length}`; refreshIcons();}catch(e){meta.textContent='Не удалось выполнить поиск.';}}; input.addEventListener('input',()=>{clearTimeout(timer);timer=setTimeout(run,350);}); input.value=new URLSearchParams(location.search).get('q')||''; if(input.value)run();});
+</script></body></html>

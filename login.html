@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Тики Пики — Вход</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/auth.css">
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body data-page="auth">
+  <main class="auth-page">
+    <section class="auth-visual">
+      <a class="brand auth-brand" href="index.html"><span class="brand-mark">ТП</span><span>Тики Пики</span></a>
+      <div class="auth-copy">
+        <span class="pill">визуальная сеть для своих историй</span>
+        <h1>Место, где твои моменты становятся историями.</h1>
+        <p>Собирай вдохновение, делись кадрами и находи людей, которым близко твоё настроение.</p>
+      </div>
+      <div class="floating-card card-one"><i data-lucide="camera"></i><span>Моменты</span></div>
+      <div class="floating-card card-two"><i data-lucide="heart"></i><span>Вдохновение</span></div>
+    </section>
+
+    <section class="auth-panel">
+      <div class="auth-card">
+        <div class="auth-tabs">
+          <button class="auth-tab is-active" data-auth-view="login">Вход</button>
+          <button class="auth-tab" data-auth-view="register">Регистрация</button>
+        </div>
+
+        <div id="auth-login" class="auth-view">
+          <div class="section-title">
+            <h2>С возвращением</h2>
+            <p>Войди, чтобы продолжить свою историю.</p>
+          </div>
+          <form id="login-form" class="form-stack">
+            <label>Email<input name="email" type="email" autocomplete="email" required placeholder="you@example.com"></label>
+            <label>Пароль<input name="password" type="password" autocomplete="current-password" required placeholder="••••••••"></label>
+            <button class="button button-primary button-wide" type="submit">Войти</button>
+          </form>
+          <button id="show-reset" class="text-button">Забыли пароль?</button>
+        </div>
+
+        <div id="auth-register" class="auth-view hidden">
+          <div class="section-title">
+            <h2>Создай свой уголок</h2>
+            <p>Регистрация займёт меньше минуты.</p>
+          </div>
+          <form id="register-form" class="form-stack">
+            <label>Имя<input name="name" type="text" autocomplete="name" required minlength="2" maxlength="40" placeholder="Как тебя зовут?"></label>
+            <label>Email<input name="email" type="email" autocomplete="email" required placeholder="you@example.com"></label>
+            <label>Пароль<input name="password" type="password" autocomplete="new-password" required minlength="6" placeholder="Минимум 6 символов"></label>
+            <button class="button button-primary button-wide" type="submit">Создать аккаунт</button>
+          </form>
+        </div>
+
+        <div id="auth-reset" class="auth-view hidden">
+          <div class="section-title">
+            <h2>Восстановление</h2>
+            <p>Отправим письмо со ссылкой для смены пароля.</p>
+          </div>
+          <form id="reset-form" class="form-stack">
+            <label>Email<input name="email" type="email" autocomplete="email" required placeholder="you@example.com"></label>
+            <button class="button button-primary button-wide" type="submit">Отправить ссылку</button>
+          </form>
+          <button id="back-to-login" class="text-button">Вернуться ко входу</button>
+        </div>
+
+        <p id="auth-message" class="form-message" role="status"></p>
+      </div>
+    </section>
+  </main>
+  <div id="toast-root" class="toast-root"></div>
+  <script type="module">
+    import { initAuthPage } from "./js/auth.js";
+    import { refreshIcons } from "./js/ui.js";
+    initAuthPage();
+    refreshIcons();
+  </script>
+</body>
+</html>

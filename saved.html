@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Тики Пики — Сохранённое</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css"><link rel="stylesheet" href="css/responsive.css">
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body data-page="saved">
+<div class="app-shell"><aside id="sidebar" class="sidebar"></aside><main class="main-content">
+<header class="topbar"><a class="brand mobile-brand" href="index.html"><span class="brand-mark">ТП</span><span>Тики Пики</span></a><div></div><div id="topbar-user" class="topbar-user"></div></header>
+<section class="page-container"><div class="feed-heading"><div><p class="eyebrow">Твоя коллекция</p><h1>Сохранённое</h1><p class="muted">Моменты, к которым хочется вернуться.</p></div></div>
+<div id="saved-posts" class="post-grid"></div><div id="saved-empty" class="empty-state hidden"><div class="empty-icon"><i data-lucide="bookmark"></i></div><h2>Здесь пока ничего нет</h2><p>Сохрани публикацию, чтобы вернуться к ней позже.</p></div></section>
+</main></div><div id="modal-root"></div><div id="toast-root" class="toast-root"></div>
+<script type="module" src="js/app.js"></script><script type="module">
+import { requireAuth } from './js/auth.js'; import { getSavedPosts } from './js/posts.js'; import { renderPostCard, refreshIcons } from './js/ui.js';
+requireAuth().then(async user=>{if(!user)return; const posts=await getSavedPosts(user.uid); const root=document.querySelector('#saved-posts'); root.innerHTML=posts.map(p=>renderPostCard(p,user,{compact:false})).join(''); document.querySelector('#saved-empty').classList.toggle('hidden',posts.length>0); refreshIcons();});
+</script></body></html>
