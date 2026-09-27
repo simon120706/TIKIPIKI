@@ -7,154 +7,128 @@ service cloud.firestore {
       return request.auth != null;
     }
 
+    function isOwner(userId) {
+      return signedIn() && request.auth.uid == userId;
+    }
+
     function isAdmin() {
       return signedIn()
         && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "admin";
     }
 
-    function isOwner(userId) {
-      return signedIn() && request.auth.uid == userId;
-    }
+    // =========================
+    // USERS
+    // =========================
 
     match /users/{userId} {
+
       allow read: if signedIn();
-      allow create: if isOwner(userId)
-        && request.resource.data.role == "user"
-        && request.resource.data.id == userId;
+
+      // Пользователь может создать только свой профиль.
+      allow create: if isOwner(userId);
+
+      // Пользователь может менять свой профиль,
+      // но НЕ может сам назначить себе admin.
       allow update: if isAdmin()
         || (
           isOwner(userId)
           && request.resource.data.role == resource.data.role
-          && request.resource.data.email == resource.data.email
-          && request.resource.data.id == resource.data.id
-          && (
-            (
-              request.resource.data.followersCount == resource.data.followersCount
-              && request.resource.data.followingCount == resource.data.followingCount
-            )
-            ||
-            (
-              // A user may change their own followingCount only when the
-              // matching follow document is created/deleted in the same transaction.
-              request.resource.data.followersCount == resource.data.followersCount
-              && (
-                (request.resource.data.followingCount == resource.data.followingCount + 1
-                  && getAfter(/databases/$(database)/documents/follows/$(request.auth.uid + "_" + request.resource.data.id)).data.followerId == request.auth.uid)
-                ||
-                (request.resource.data.followingCount == resource.data.followingCount - 1
-                  && !existsAfter(/databases/$(database)/documents/follows/$(request.auth.uid + "_" + request.resource.data.id)))
-              )
-            )
-          )
-        )
-        ||
-        (
-          // A follow transaction may update another user's followersCount.
-          signedIn()
-          && request.resource.data.id == userId
-          && request.resource.data.followingCount == resource.data.followingCount
-          && request.resource.data.role == resource.data.role
-          && request.resource.data.email == resource.data.email
-          && (
-            (request.resource.data.followersCount == resource.data.followersCount + 1
-              && getAfter(/databases/$(database)/documents/follows/$(request.auth.uid + "_" + userId)).data.followingId == userId)
-            ||
-            (request.resource.data.followersCount == resource.data.followersCount - 1
-              && !existsAfter(/databases/$(database)/documents/follows/$(request.auth.uid + "_" + userId)))
-          )
         );
+
+      // Удалять пользователей может только админ.
       allow delete: if isAdmin();
     }
 
+    // =========================
+    // POSTS
+    // =========================
+
     match /posts/{postId} {
-      allow read: if signedIn();
+
+      allow read: if true;
+
       allow create: if signedIn()
-        && request.resource.data.authorId == request.auth.uid
-        && request.resource.data.likesCount == 0
-        && request.resource.data.commentsCount == 0;
+        && request.resource.data.authorId == request.auth.uid;
+
       allow update: if isAdmin()
         || (
           signedIn()
-          && request.resource.data.authorId == resource.data.authorId
-          && (
-            // Owner can edit content, but cannot forge social counters.
-            (
-              resource.data.authorId == request.auth.uid
-              && request.resource.data.likesCount == resource.data.likesCount
-              && request.resource.data.commentsCount == resource.data.commentsCount
-            )
-            ||
-            // Like transaction: the caller's unique like document must exist after +1
-            // or be absent after -1.
-            (
-              request.resource.data.text == resource.data.text
-              && request.resource.data.image == resource.data.image
-              && request.resource.data.authorName == resource.data.authorName
-              && request.resource.data.authorAvatar == resource.data.authorAvatar
-              && request.resource.data.commentsCount == resource.data.commentsCount
-              && (
-                (request.resource.data.likesCount == resource.data.likesCount + 1
-                  && getAfter(/databases/$(database)/documents/likes/$(postId + "_" + request.auth.uid)).data.postId == postId)
-                ||
-                (request.resource.data.likesCount == resource.data.likesCount - 1
-                  && !existsAfter(/databases/$(database)/documents/likes/$(postId + "_" + request.auth.uid)))
-              )
-            )
-            ||
-            // Comment creation/deletion changes only commentsCount by one.
-            (
-              request.resource.data.text == resource.data.text
-              && request.resource.data.image == resource.data.image
-              && request.resource.data.authorName == resource.data.authorName
-              && request.resource.data.authorAvatar == resource.data.authorAvatar
-              && request.resource.data.likesCount == resource.data.likesCount
-              && (
-                request.resource.data.commentsCount == resource.data.commentsCount + 1
-                || (
-                  request.resource.data.commentsCount == resource.data.commentsCount - 1
-                  && request.resource.data.commentsCount >= 0
-                )
-              )
-            )
-          )
+          && resource.data.authorId == request.auth.uid
         );
+
       allow delete: if isAdmin()
-        || (signedIn() && resource.data.authorId == request.auth.uid);
+        || (
+          signedIn()
+          && resource.data.authorId == request.auth.uid
+        );
     }
+
+    // =========================
+    // COMMENTS
+    // =========================
 
     match /comments/{commentId} {
-      allow read: if signedIn();
-      allow create: if signedIn() && request.resource.data.authorId == request.auth.uid;
-      allow delete: if isAdmin() || (signedIn() && resource.data.authorId == request.auth.uid);
-      allow update: if isAdmin() || (signedIn() && resource.data.authorId == request.auth.uid);
+
+      allow read: if true;
+
+      allow create: if signedIn()
+        && request.resource.data.authorId == request.auth.uid;
+
+      allow update: if isAdmin()
+        || (
+          signedIn()
+          && resource.data.authorId == request.auth.uid
+        );
+
+      allow delete: if isAdmin()
+        || (
+          signedIn()
+          && resource.data.authorId == request.auth.uid
+        );
     }
+
+    // =========================
+    // LIKES
+    // =========================
 
     match /likes/{likeId} {
+
       allow read: if signedIn();
+
       allow create: if signedIn()
-        && request.resource.data.userId == request.auth.uid
-        && likeId == request.resource.data.postId + "_" + request.auth.uid;
-      allow delete: if signedIn() && resource.data.userId == request.auth.uid;
-      allow update: if false;
+        && request.resource.data.userId == request.auth.uid;
+
+      allow delete: if isAdmin()
+        || (
+          signedIn()
+          && resource.data.userId == request.auth.uid
+        );
     }
 
-    match /follows/{followId} {
+    // =========================
+    // SAVED POSTS
+    // =========================
+
+    match /savedPosts/{id} {
+
       allow read: if signedIn();
+
       allow create: if signedIn()
-        && request.resource.data.followerId == request.auth.uid
-        && request.resource.data.followerId != request.resource.data.followingId
-        && followId == request.auth.uid + "_" + request.resource.data.followingId;
-      allow delete: if signedIn() && resource.data.followerId == request.auth.uid;
-      allow update: if false;
+        && request.resource.data.userId == request.auth.uid;
+
+      allow delete: if isAdmin()
+        || (
+          signedIn()
+          && resource.data.userId == request.auth.uid
+        );
     }
 
-    match /savedPosts/{saveId} {
-      allow read: if signedIn();
-      allow create: if signedIn()
-        && request.resource.data.userId == request.auth.uid
-        && saveId == request.auth.uid + "_" + request.resource.data.postId;
-      allow delete: if signedIn() && resource.data.userId == request.auth.uid;
-      allow update: if false;
+    // =========================
+    // DENY EVERYTHING ELSE
+    // =========================
+
+    match /{document=**} {
+      allow read, write: if false;
     }
   }
 }
